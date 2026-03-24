@@ -46,7 +46,7 @@ Or just tap/click the keys on any touch device.
 ## 🌐 Live Demo
 
 Hosted on GitHub Pages — no install required:  
-**[CLICK HERE TO PLAY](https://arjunganesan1903.github.io/harmonium)**
+**[CLICK HERE TO PLAY](./harmonium.html)**
 
 ---
 
