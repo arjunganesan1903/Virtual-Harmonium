@@ -2,15 +2,15 @@
 
 > *Your keyboard is an instrument. It always was.*
 
-A vintage harmonium that lives entirely in your browser — no installs, no accounts, no nonsense. Just open the page, press a key, and make music.
+A vintage harmonium that lives entirely in your browser, no installs, no accounts, no nonsense. Just open the page, press a key, and make music.
 
 ---
 
 ## ✨ What is this?
 
-This is a fully playable **harmonium** built in pure HTML, CSS, and JavaScript. That means it runs on **literally anything with a browser** — your laptop, your phone, a tablet, an ancient family PC in the corner of a room. No app store. No setup. No build step. Just one file.
+This is a fully playable **harmonium** built in pure HTML, CSS, and JavaScript. That means it runs on **literally anything with a browser**, your laptop, your phone, a tablet, an ancient family PC in the corner of a room. No app store. No setup. No build step. Just one file.
 
-It was also a small proof of something: that a mundane QWERTY keyboard — the thing you use to write emails and argue on the internet — can become a musical instrument with the right 300 lines of code.
+It was also a small proof of something: that a mundane QWERTY keyboard , the thing you use to write emails and argue on the internet can become a musical instrument with the right 300 lines of code.
 
 ---
 
@@ -40,30 +40,13 @@ Octave down →  ←  (left arrow)
 
 Or just tap/click the keys on any touch device.
 
----
-
-## 🚀 Running It
-
-There is no Step 2.
-
-```bash
-# Option A — just open it
-open index.html
-
-# Option B — serve it locally
-npx serve .
-# or
-python -m http.server 8000
-```
-
-It also works completely **offline**. Download the file, throw it on a USB drive, open it on a plane at 35,000 feet. Still works.
 
 ---
 
 ## 🌐 Live Demo
 
 Hosted on GitHub Pages — no install required:  
-**[yourusername.github.io/harmonium](https://yourusername.github.io/harmonium)**
+**[arjunganesan1903.github.io/harmonium](https://arjunganesan1903.github.io/harmonium)**
 
 ---
 
