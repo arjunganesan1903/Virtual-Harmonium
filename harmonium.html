@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=IM+Fell+English&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a0e06;
+      padding: 24px;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .harmonium {
+      width: 100%;
+      max-width: 860px;
+      background: linear-gradient(160deg, #2b1a0e 0%, #3d2410 40%, #2a1608 100%);
+      border-radius: 16px;
+      padding: 24px;
+      border: 3px solid #8b5e2a;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.6), 0 8px 40px rgba(0,0,0,0.7);
+      position: relative;
+      user-select: none;
+    }
+
+    /* Wood grain overlay */
+    .harmonium::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        92deg,
+        transparent 0px, transparent 8px,
+        rgba(255,200,100,0.025) 8px, rgba(255,200,100,0.025) 9px
+      );
+    }
+
+    .title-bar {
+      text-align: center;
+      color: #e8c97a;
+      font-size: 26px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      font-style: italic;
+      margin-bottom: 18px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+      border-bottom: 1px solid rgba(200,150,60,0.3);
+      padding-bottom: 12px;
+    }
+
+    /* ── Controls ── */
+    .controls-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(180,120,40,0.2);
+    }
+
+    .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
+    .ctrl-label {
+      font-size: 10px;
+      color: #a07840;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .vol-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 110px;
+      height: 5px;
+      background: linear-gradient(to right, #c8913a, #8b5e2a);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      background: #e8c97a;
+      border: 2px solid #8b5e2a;
+      cursor: pointer;
+    }
+    .vol-slider::-moz-range-thumb {
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      background: #e8c97a;
+      border: 2px solid #8b5e2a;
+      cursor: pointer;
+    }
+
+    .btn {
+      font-family: 'Playfair Display', serif;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid #8b5e2a;
+      background: linear-gradient(180deg, #5a3516 0%, #3d2410 100%);
+      color: #e8c97a;
+      letter-spacing: 1px;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: linear-gradient(180deg, #7a4a20 0%, #5a3516 100%); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn.active { background: linear-gradient(180deg, #c8913a 0%, #9a6a1a 100%); color: #2b1a0e; }
+    .btn.rec { color: #ff7070; }
+    .btn.rec.active { background: linear-gradient(180deg, #c0392b 0%, #7a1a1a 100%); color: #fff; }
+
+    .octave-display {
+      font-size: 12px;
+      color: #e8c97a;
+      letter-spacing: 1px;
+      padding: 5px 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(200,150,60,0.3);
+      border-radius: 4px;
+      text-align: center;
+      min-width: 90px;
+    }
+
+    .octave-shift-row { display: flex; gap: 6px; align-items: center; }
+    .os-btn {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #5a3516 0%, #3d2410 100%);
+      border: 1px solid #8b5e2a;
+      color: #e8c97a;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+      font-family: monospace;
+    }
+    .os-btn:hover { background: linear-gradient(180deg, #7a4a20 0%, #5a3516 100%); }
+
+    .drone-keys-row { display: flex; gap: 5px; flex-wrap: wrap; }
+    .drone-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(180,120,40,0.3);
+      color: #a07840;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+    }
+    .drone-pill.on {
+      background: rgba(200,150,60,0.25);
+      color: #e8c97a;
+      border-color: rgba(200,150,60,0.5);
+    }
+
+    /* ── Status bar ── */
+    .status-bar {
+      font-size: 11px;
+      color: #a07840;
+      text-align: center;
+      margin-bottom: 10px;
+      min-height: 18px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Keyboard ── */
+    .keyboard-wrapper { overflow-x: auto; padding-bottom: 4px; }
+
+    .keyboard {
+      display: flex;
+      position: relative;
+      height: 170px;
+      min-width: 620px;
+      background: linear-gradient(180deg, #1a0e06 0%, #2b1a0e 20%);
+      border-radius: 0 0 10px 10px;
+      padding: 10px 10px 0;
+      border: 2px solid #6b3f18;
+      border-top: 5px solid #8b5e2a;
+      gap: 2px;
+    }
+
+    .white-key {
+      flex: 1;
+      min-width: 36px;
+      max-width: 54px;
+      border-radius: 0 0 8px 8px;
+      border: 1px solid #c8913a;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.05s, transform 0.05s;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 8px;
+      background: linear-gradient(180deg, #f5e8c8 0%, #ede0b0 60%, #d4b87a 100%);
+      box-shadow: inset 0 -3px 6px rgba(0,0,0,0.2), 2px 0 3px rgba(0,0,0,0.15);
+    }
+    .white-key:hover {
+      background: linear-gradient(180deg, #fff8e8 0%, #f5e8c8 60%, #ddc887 100%);
+    }
+    .white-key.pressed {
+      background: linear-gradient(180deg, #e8c97a 0%, #c8a050 60%, #9a7030 100%);
+      transform: translateY(3px);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .white-key.drone-active {
+      background: linear-gradient(180deg, #f0d080 0%, #c8a050 60%, #9a7030 100%);
+    }
+
+    .black-key {
+      position: absolute;
+      width: 58%;
+      height: 62%;
+      background: linear-gradient(180deg, #3d2410 0%, #1a0e06 70%, #2b1a0e 100%);
+      border-radius: 0 0 5px 5px;
+      border: 1px solid #5a3516;
+      border-top: 3px solid #4a2812;
+      cursor: pointer;
+      z-index: 2;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: background 0.05s;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 5px;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.6);
+    }
+    .black-key:hover {
+      background: linear-gradient(180deg, #5a3516 0%, #2b1a0e 70%, #3d2410 100%);
+    }
+    .black-key.pressed {
+      background: linear-gradient(180deg, #8b5e2a 0%, #5a3516 70%, #3d2410 100%);
+      transform: translateX(-50%) translateY(3px);
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+    .black-key.drone-active {
+      background: linear-gradient(180deg, #7a5020 0%, #4a2812 70%, #2b1a0e 100%);
+    }
+
+    .key-label {
+      font-size: 9px;
+      color: rgba(80,50,20,0.65);
+      font-family: monospace;
+    }
+    .black-key .key-label { color: rgba(200,150,80,0.55); font-size: 8px; }
+
+    .note-label {
+      font-size: 9px;
+      font-family: 'IM Fell English', serif;
+      color: rgba(80,50,20,0.45);
+      margin-top: 1px;
+    }
+
+    /* ── Playback bar ── */
+    .playback-bar {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      border: 1px solid rgba(180,120,40,0.2);
+      min-height: 44px;
+    }
+    .pb-title {
+      font-size: 10px;
+      color: #a07840;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .pb-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pb-item {
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: rgba(200,150,60,0.12);
+      border: 1px solid rgba(200,150,60,0.3);
+      color: #e8c97a;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: 'Playfair Display', serif;
+    }
+    .pb-item:hover { background: rgba(200,150,60,0.28); }
+    .pb-item.playing { background: rgba(200,150,60,0.4); }
+
+    /* ── Recording indicator ── */
+    .rec-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff4444;
+      margin-right: 6px;
+      vertical-align: middle;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+    /* ── Hint ── */
+    .hint {
+      font-size: 10px;
+      color: #6b4a20;
+      text-align: center;
+      margin-top: 10px;
+      letter-spacing: 0.4px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="harmonium">
+  <div class="title-bar">Harmonium</div>
+
+  <!-- Controls -->
+  <div class="controls-row">
+    <!-- Volume -->
+    <div class="ctrl-group">
+      <div class="ctrl-label">Volume</div>
+      <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="70" />
+    </div>
+
+    <!-- Octave -->
+    <div class="ctrl-group">
+      <div class="ctrl-label">Octave Shift</div>
+      <div class="octave-shift-row">
+        <button class="os-btn" id="octDown" title="Shift down (←)">−</button>
+        <div class="octave-display" id="octDisplay">C3 – C6</div>
+        <button class="os-btn" id="octUp" title="Shift up (→)">+</button>
+      </div>
+    </div>
+
+    <!-- Sustain -->
+    <div class="ctrl-group">
+      <div class="ctrl-label">Sustain / Hold</div>
+      <button class="btn" id="sustainBtn">Sustain OFF</button>
+    </div>
+
+    <!-- Drone -->
+    <div class="ctrl-group">
+      <div class="ctrl-label">Drone Keys</div>
+      <div class="drone-keys-row" id="droneKeysRow"></div>
+    </div>
+
+    <!-- Record -->
+    <div class="ctrl-group">
+      <div class="ctrl-label">Record</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn rec" id="recBtn">● Rec</button>
+        <button class="btn" id="stopBtn" disabled>■ Stop</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar">
+    Press keys to play &nbsp;·&nbsp; Z–/ = white keys &nbsp;·&nbsp; S D G H J L ; = black keys &nbsp;·&nbsp; Space = sustain &nbsp;·&nbsp; ← → = octave
+  </div>
+
+  <!-- Keyboard -->
+  <div class="keyboard-wrapper">
+    <div class="keyboard" id="keyboard"></div>
+  </div>
+
+  <!-- Playback -->
+  <div class="playback-bar">
+    <div class="pb-title">Recordings</div>
+    <div class="pb-list" id="pbList">
+      <span style="font-size:11px;color:#6b4a20;">No recordings yet — press ● Rec to start</span>
+    </div>
+  </div>
+
+  <div class="hint">
+    White keys: Z X C V B N M , . / &nbsp;|&nbsp; Black keys: S D &nbsp; G H J &nbsp; L ; <br/>
+    Space = toggle sustain &nbsp;·&nbsp; ← → arrow keys = shift octave &nbsp;·&nbsp; Click drone pills to hold a note continuously
+  </div>
+</div>
+
+<!-- Tone.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+<script>
+  // ─────────────────────────────────────────────
+  //  CONFIG
+  // ─────────────────────────────────────────────
+  const BASE_OCTAVE   = 3;          // lowest octave displayed (C3 by default)
+  const NUM_OCTAVES   = 3;          // how many full octaves to show
+  const TOTAL_WHITE   = NUM_OCTAVES * 7 + 1; // extra C at the top
+
+  const NOTE_NAMES    = ['C','D','E','F','G','A','B'];
+  const HAS_SHARP     = { C:true, D:true, F:true, G:true, A:true }; // notes that have a sharp
+
+  // Keyboard → white-key-index mapping
+  const KB_WHITE = { z:0, x:1, c:2, v:3, b:4, n:5, m:6, ',':7, '.':8, '/':9 };
+  // Keyboard → white-key-index whose sharp we play
+  const KB_BLACK = { s:0, d:1, g:3, h:4, j:5, l:7, ';':8 };
+
+  // ─────────────────────────────────────────────
+  //  STATE
+  // ─────────────────────────────────────────────
+  let octaveOffset  = 0;
+  let sustainOn     = false;
+  let activeKeys    = {};     // note → DOM element
+  let droneSynths   = {};     // note → Tone.Synth
+  let isRecording   = false;
+  let recordingStart= 0;
+  let recordingEvts = [];
+  let recordings    = [];
+  let playbackTimer = null;
+
+  let vol, synth;
+
+  // ─────────────────────────────────────────────
+  //  AUDIO INIT (lazy — first interaction)
+  // ─────────────────────────────────────────────
+  function initAudio() {
+    if (synth) return;
+    vol = new Tone.Volume(-6).toDestination();
+    synth = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: 'sawtooth' },
+      envelope:   { attack: 0.02, decay: 0.1, sustain: 0.7, release: 0.4 },
+      volume: -8
+    }).connect(vol);
+    updateVolume();
+  }
+
+  function updateVolume() {
+    if (!vol) return;
+    const v = +document.getElementById('volSlider').value;
+    vol.volume.value = -40 + (v / 100) * 40;
+  }
+
+  // ─────────────────────────────────────────────
+  //  NOTE HELPERS
+  // ─────────────────────────────────────────────
+  function whiteToNote(i) {
+    const octave = Math.floor(i / 7) + BASE_OCTAVE + octaveOffset;
+    return NOTE_NAMES[i % 7] + octave;
+  }
+
+  function whiteToBlackNote(i) {
+    const name = NOTE_NAMES[i % 7];
+    if (!HAS_SHARP[name]) return null;
+    const octave = Math.floor(i / 7) + BASE_OCTAVE + octaveOffset;
+    const sharp = { C:'C#', D:'D#', F:'F#', G:'G#', A:'A#' }[name];
+    return sharp + octave;
+  }
+
+  function getNoteEl(note) {
+    return document.querySelector(`[data-note="${note}"]`);
+  }
+
+  // ─────────────────────────────────────────────
+  //  PLAY / STOP
+  // ─────────────────────────────────────────────
+  function playNote(note, el) {
+    initAudio();
+    if (activeKeys[note]) return;
+    activeKeys[note] = el;
+    el.classList.add('pressed');
+    synth.triggerAttack(note, Tone.now());
+    if (isRecording) recordingEvts.push({ type:'on', note, time: Date.now() - recordingStart });
+    setStatus('Playing: ' + note);
+  }
+
+  function stopNote(note) {
+    if (!activeKeys[note]) return;
+    activeKeys[note].classList.remove('pressed');
+    delete activeKeys[note];
+    synth.triggerRelease(note, Tone.now());
+    if (isRecording) recordingEvts.push({ type:'off', note, time: Date.now() - recordingStart });
+  }
+
+  function stopAllNotes() {
+    Object.keys(activeKeys).forEach(note => stopNote(note));
+  }
+
+  // ─────────────────────────────────────────────
+  //  BUILD KEYBOARD
+  // ─────────────────────────────────────────────
+  function buildKeyboard() {
+    const kb = document.getElementById('keyboard');
+    kb.innerHTML = '';
+
+    const whiteKeyChars  = Object.keys(KB_WHITE);
+    const blackKeyChars  = ['s','d','','g','h','j','','l',';',''];
+
+    for (let i = 0; i < TOTAL_WHITE; i++) {
+      const note     = whiteToNote(i);
+      const noteName = NOTE_NAMES[i % 7];
+      const octave   = Math.floor(i / 7) + BASE_OCTAVE + octaveOffset;
+      const keyChar  = whiteKeyChars[i] ? whiteKeyChars[i].toUpperCase() : '';
+
+      const wKey = document.createElement('div');
+      wKey.className   = 'white-key';
+      wKey.dataset.note = note;
+      wKey.dataset.wIdx = i;
+
+      wKey.innerHTML = `
+        <span class="key-label">${keyChar}</span>
+        <span class="note-label">${noteName}${octave}</span>
+      `;
+
+      wKey.addEventListener('mousedown',  (e) => { e.preventDefault(); Tone.start(); playNote(note, wKey); });
+      wKey.addEventListener('mouseup',    ()  => { if (!sustainOn) stopNote(note); });
+      wKey.addEventListener('mouseleave', ()  => { if (!sustainOn && activeKeys[note]) stopNote(note); });
+      wKey.addEventListener('touchstart', (e) => { e.preventDefault(); Tone.start(); playNote(note, wKey); }, { passive: false });
+      wKey.addEventListener('touchend',   (e) => { e.preventDefault(); if (!sustainOn) stopNote(note); }, { passive: false });
+
+      // Black key (sharp)
+      const bNote = whiteToBlackNote(i);
+      if (bNote) {
+        const bChar = (blackKeyChars[i] || '').toUpperCase();
+        const bKey  = document.createElement('div');
+        bKey.className    = 'black-key';
+        bKey.dataset.note = bNote;
+        bKey.innerHTML    = `<span class="key-label">${bChar}</span>`;
+
+        bKey.addEventListener('mousedown',  (e) => { e.stopPropagation(); e.preventDefault(); Tone.start(); playNote(bNote, bKey); });
+        bKey.addEventListener('mouseup',    (e) => { e.stopPropagation(); if (!sustainOn) stopNote(bNote); });
+        bKey.addEventListener('mouseleave', (e) => { if (!sustainOn && activeKeys[bNote]) stopNote(bNote); });
+        bKey.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); Tone.start(); playNote(bNote, bKey); }, { passive: false });
+        bKey.addEventListener('touchend',   (e) => { e.preventDefault(); e.stopPropagation(); if (!sustainOn) stopNote(bNote); }, { passive: false });
+
+        wKey.appendChild(bKey);
+      }
+
+      kb.appendChild(wKey);
+    }
+
+    updateOctaveDisplay();
+    updateDronePills();
+  }
+
+  // ─────────────────────────────────────────────
+  //  KEYBOARD INPUT
+  // ─────────────────────────────────────────────
+  const heldKeys = new Set();
+
+  document.addEventListener('keydown', async (e) => {
+    if (e.repeat) return;
+    const k = e.key === ',' ? ',' : e.key === '.' ? '.' : e.key === '/' ? '/' : e.key.toLowerCase();
+
+    if (k === ' ')           { e.preventDefault(); toggleSustain(); return; }
+    if (k === 'arrowleft')   { shiftOctave(-1); return; }
+    if (k === 'arrowright')  { shiftOctave(1);  return; }
+
+    await Tone.start();
+    initAudio();
+
+    if (KB_WHITE[k] !== undefined) {
+      const i = KB_WHITE[k];
+      if (i < TOTAL_WHITE) {
+        const note = whiteToNote(i);
+        const el   = document.querySelector(`[data-w-idx="${i}"]`) ||
+                     document.querySelector(`.white-key:nth-child(${i+1})`);
+        const wEl  = kb_whiteEl(i);
+        if (wEl && !activeKeys[note]) playNote(note, wEl);
+      }
+    } else if (KB_BLACK[k] !== undefined) {
+      const i    = KB_BLACK[k];
+      const bNote = whiteToBlackNote(i);
+      if (bNote) {
+        const el = getNoteEl(bNote);
+        if (el && !activeKeys[bNote]) playNote(bNote, el);
+      }
+    }
+  });
+
+  document.addEventListener('keyup', (e) => {
+    if (sustainOn) return;
+    const k = e.key === ',' ? ',' : e.key === '.' ? '.' : e.key === '/' ? '/' : e.key.toLowerCase();
+
+    if (KB_WHITE[k] !== undefined) {
+      const note = whiteToNote(KB_WHITE[k]);
+      if (activeKeys[note]) stopNote(note);
+    } else if (KB_BLACK[k] !== undefined) {
+      const bNote = whiteToBlackNote(KB_BLACK[k]);
+      if (bNote && activeKeys[bNote]) stopNote(bNote);
+    }
+  });
+
+  function kb_whiteEl(i) {
+    return document.querySelectorAll('.white-key')[i] || null;
+  }
+
+  // ─────────────────────────────────────────────
+  //  SUSTAIN
+  // ─────────────────────────────────────────────
+  function toggleSustain() {
+    sustainOn = !sustainOn;
+    const btn = document.getElementById('sustainBtn');
+    btn.textContent = sustainOn ? 'Sustain ON' : 'Sustain OFF';
+    btn.classList.toggle('active', sustainOn);
+    if (synth) synth.set({ envelope: { release: sustainOn ? 2.8 : 0.4 } });
+    if (!sustainOn) stopAllNotes();
+    setStatus(sustainOn ? 'Sustain ON — notes ring freely · Space to toggle' : 'Sustain OFF · Space to toggle');
+  }
+  document.getElementById('sustainBtn').addEventListener('click', toggleSustain);
+
+  // ─────────────────────────────────────────────
+  //  OCTAVE SHIFT
+  // ─────────────────────────────────────────────
+  function shiftOctave(dir) {
+    const next = octaveOffset + dir;
+    if (next < -2 || next > 2) return;
+    octaveOffset = next;
+    stopAllNotes();
+    buildKeyboard();
+  }
+
+  function updateOctaveDisplay() {
+    const lo = BASE_OCTAVE + octaveOffset;
+    document.getElementById('octDisplay').textContent = `C${lo} – C${lo + NUM_OCTAVES}`;
+    setStatus(`Octave: C${lo} – C${lo + NUM_OCTAVES} &nbsp;·&nbsp; Use ← → to shift`);
+  }
+
+  document.getElementById('octUp').addEventListener('click',   () => shiftOctave(1));
+  document.getElementById('octDown').addEventListener('click', () => shiftOctave(-1));
+
+  // ─────────────────────────────────────────────
+  //  DRONE
+  // ─────────────────────────────────────────────
+  function updateDronePills() {
+    const row = document.getElementById('droneKeysRow');
+    row.innerHTML = '';
+    NOTE_NAMES.forEach((n, idx) => {
+      const note = n + (BASE_OCTAVE + octaveOffset);
+      const pill = document.createElement('div');
+      pill.className   = 'drone-pill' + (droneSynths[note] ? ' on' : '');
+      pill.textContent = n;
+      pill.title       = 'Click to toggle drone on ' + note;
+      pill.addEventListener('click', () => toggleDrone(note, pill));
+      row.appendChild(pill);
+    });
+  }
+
+  function toggleDrone(note, pill) {
+    initAudio();
+    if (droneSynths[note]) {
+      droneSynths[note].triggerRelease(note);
+      setTimeout(() => { if (droneSynths[note]) { droneSynths[note].dispose(); delete droneSynths[note]; } }, 600);
+      pill.classList.remove('on');
+      const el = getNoteEl(note); if (el) el.classList.remove('drone-active');
+    } else {
+      const ds = new Tone.Synth({
+        oscillator: { type: 'sawtooth' },
+        envelope:   { attack: 0.3, decay: 0.1, sustain: 1.0, release: 2.0 },
+        volume: -14
+      }).connect(vol || new Tone.Volume(-6).toDestination());
+      ds.triggerAttack(note);
+      droneSynths[note] = ds;
+      pill.classList.add('on');
+      const el = getNoteEl(note); if (el) el.classList.add('drone-active');
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  RECORD
+  // ─────────────────────────────────────────────
+  document.getElementById('recBtn').addEventListener('click', () => {
+    if (isRecording) return;
+    isRecording     = true;
+    recordingStart  = Date.now();
+    recordingEvts   = [];
+    document.getElementById('recBtn').classList.add('active');
+    document.getElementById('stopBtn').disabled = false;
+    document.getElementById('statusBar').innerHTML =
+      '<span class="rec-dot"></span>Recording... Press ■ Stop when done';
+  });
+
+  document.getElementById('stopBtn').addEventListener('click', () => {
+    if (!isRecording) return;
+    isRecording = false;
+    document.getElementById('recBtn').classList.remove('active');
+    document.getElementById('stopBtn').disabled = true;
+    const dur = ((Date.now() - recordingStart) / 1000).toFixed(1);
+    recordings.push({ name: `Take ${recordings.length + 1}`, events: [...recordingEvts], duration: +dur });
+    renderPlaybacks();
+    setStatus(`Saved "Take ${recordings.length}" (${dur}s) · Click it below to replay`);
+  });
+
+  // ─────────────────────────────────────────────
+  //  PLAYBACK
+  // ─────────────────────────────────────────────
+  function renderPlaybacks() {
+    const list = document.getElementById('pbList');
+    list.innerHTML = '';
+    if (!recordings.length) {
+      list.innerHTML = '<span style="font-size:11px;color:#6b4a20;">No recordings yet — press ● Rec to start</span>';
+      return;
+    }
+    recordings.forEach(rec => {
+      const item = document.createElement('div');
+      item.className    = 'pb-item';
+      item.textContent  = `${rec.name}  (${rec.duration}s)`;
+      item.addEventListener('click', () => playbackRecording(rec, item));
+      list.appendChild(item);
+    });
+  }
+
+  function playbackRecording(rec, itemEl) {
+    initAudio();
+    if (playbackTimer) clearTimeout(playbackTimer);
+    document.querySelectorAll('.pb-item').forEach(el => el.classList.remove('playing'));
+    itemEl.classList.add('playing');
+    setStatus(`▶ Playing back: ${rec.name}`);
+
+    rec.events.forEach(ev => {
+      setTimeout(() => {
+        const el = getNoteEl(ev.note);
+        if (ev.type === 'on')  { synth.triggerAttack(ev.note, Tone.now());  if (el) el.classList.add('pressed'); }
+        else                   { synth.triggerRelease(ev.note, Tone.now()); if (el) el.classList.remove('pressed'); }
+      }, ev.time);
+    });
+
+    const total = rec.events.length ? rec.events[rec.events.length - 1].time + 800 : 800;
+    playbackTimer = setTimeout(() => {
+      itemEl.classList.remove('playing');
+      setStatus('Playback complete');
+    }, total);
+  }
+
+  // ─────────────────────────────────────────────
+  //  VOLUME
+  // ─────────────────────────────────────────────
+  document.getElementById('volSlider').addEventListener('input', updateVolume);
+
+  // ─────────────────────────────────────────────
+  //  HELPERS
+  // ─────────────────────────────────────────────
+  function setStatus(msg) {
+    document.getElementById('statusBar').innerHTML = msg;
+  }
+
+  // ─────────────────────────────────────────────
+  //  INIT
+  // ─────────────────────────────────────────────
+  buildKeyboard();
+</script>
+</body>
+</html>
